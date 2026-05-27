@@ -7,12 +7,23 @@ import { Videos, Sidebar } from "./";
 const Feed = () => {
   const [selectedCategory, setSelectedCategory] = useState("New");
   const [videos, setVideos] = useState(null);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     setVideos(null);
+    setError("");
 
-    fetchFromAPI(`search?part=snippet&q=${selectedCategory}`)
-      .then((data) => setVideos(data.items))
+    const loadVideos = async () => {
+      try {
+        const data = await fetchFromAPI(`search?part=snippet&q=${selectedCategory}`);
+        setVideos(data.items || []);
+      } catch (requestError) {
+        setVideos([]);
+        setError("Videos could not be loaded. Check your RapidAPI key, quota, or service status.");
+      }
+    };
+
+    loadVideos();
     }, [selectedCategory]);
 
   return (
@@ -30,7 +41,7 @@ const Feed = () => {
           {selectedCategory} <span style={{ color: "#FC1503" }}>videos</span>
         </Typography>
 
-        <Videos videos={videos} />
+        <Videos videos={videos} error={error} />
       </Box>
     </Stack>
   );

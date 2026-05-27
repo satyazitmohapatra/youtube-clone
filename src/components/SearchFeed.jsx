@@ -7,11 +7,24 @@ import { Videos } from "./";
 
 const SearchFeed = () => {
   const [videos, setVideos] = useState(null);
+  const [error, setError] = useState("");
   const { searchTerm } = useParams();
 
   useEffect(() => {
-    fetchFromAPI(`search?part=snippet&q=${searchTerm}`)
-      .then((data) => setVideos(data.items))
+    setVideos(null);
+    setError("");
+
+    const loadVideos = async () => {
+      try {
+        const data = await fetchFromAPI(`search?part=snippet&q=${searchTerm}`);
+        setVideos(data.items || []);
+      } catch (requestError) {
+        setVideos([]);
+        setError("Search results could not be loaded. Check your RapidAPI key, quota, or service status.");
+      }
+    };
+
+    loadVideos();
   }, [searchTerm]);
 
   return (
@@ -21,7 +34,7 @@ const SearchFeed = () => {
       </Typography>
       <Box display="flex">
         <Box sx={{ mr: { sm: '100px' } }}/>
-        {<Videos videos={videos} />}
+        <Videos videos={videos} error={error} />
       </Box>
     </Box>
   );
